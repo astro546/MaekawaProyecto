@@ -30,3 +30,7 @@ El proceso con id 5556 entro a la region critica
 El proceso con id 5555 entro a la region critica
 El proceso con id 5557 entro a la region critica
 El proceso con id 5558 entro a la region critica
+El proceso con id 5556 entro a la region critica
+El proceso con id 5555 entro a la region critica
+El proceso con id 5557 entro a la region critica
+El proceso con id 5558 entro a la region critica

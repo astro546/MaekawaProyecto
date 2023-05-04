@@ -2,6 +2,7 @@ import zmq # Para los sockets
 import threading as th
 from enum import Enum
 import sys
+import math
 
 class Nodo:
 
@@ -15,10 +16,11 @@ class Nodo:
         self.sockets_cl = {}
         self.queue = []
         self.soc_server = self.inicia_servidor()
+        self.marca_temporal = 1
         self.peticion_entrada()
 
-    # Los sockets cliente sirven para mandar mensajes a los demas nodos
     
+    # Los sockets cliente sirven para mandar mensajes a los demas nodos
     # Funcion que ejecutan los hilos
     def iniciar_cliente(self, puerto: int) -> None:
         ctx = zmq.Context()
@@ -89,6 +91,8 @@ class Nodo:
                 else: # Una vez que se cumple esto, se procede a cambiar el estado y entrar en la región critica
                     self.estado = 'HELD'
                     no_respuestas = 0
+                    self.marca_temporal += 0.1
+                    print(f"Marca Temporal: {self.marca_temporal}")
                     self.entrar_seccion_critica()
             elif tipo_peticion == 3: # Petición de liberación de la región critica
                 self.salir_region_critica()
@@ -102,6 +106,9 @@ class Nodo:
     # Para que pi entre a la seccion critica
     def pedir_seccion_critica(self) -> None:
         self.estado = 'WANTED'
+        marca = math.ceil(self.marca_temporal)
+        self.marca_temporal = marca
+        print(f"Marca Temporal: {self.marca_temporal}")
         msg = {"id": self.id, "tipo": 1}
         print("Enviando peticiones a los nodos")
         for cl in self.sockets_cl.values():
@@ -115,6 +122,8 @@ class Nodo:
     def procesar_peticion(self, peticion) -> None or dict:
         if self.estado == 'HELD' or self.votacion == True:
             self.queue.append(peticion)
+            self.marca_temporal += 0.1
+            print(f"Marca Temporal: {self.marca_temporal}")
         else:
             id_destino = peticion['id']
             respuesta = {"id": self.id, "tipo": 2}
@@ -132,6 +141,9 @@ class Nodo:
         region_critica.close()
         peticion = {"id": self.id, "tipo": 3}
         self.estado = "RELEASED"
+        marca = math.ceil(self.marca_temporal)
+        self.marca_temporal = marca 
+        print(f"Marca Temporal: {self.marca_temporal}")
         for cl in self.sockets_cl.values():
             cl.send_json(peticion)
         # self.listener()
